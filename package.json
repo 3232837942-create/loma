@@ -1,0 +1,1 @@
+{"name":"roma-atlas","version":"0.2.0","private":true,"type":"module","scripts":{"start":"node scripts/serve.mjs","dev":"node scripts/serve.mjs","build":"node scripts/build.mjs","test":"node --test tests/data.test.mjs","test:browser":"node tests/browser.mjs"},"devDependencies":{"@playwright/test":"^1.58.2"}}

@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {yearLabel,snapshotFor,cities,cityName,events,people,regions,snapshots,sources} from '../src/data.js';
+test('BCE and CE chronology never displays a year zero',()=>{assert.equal(yearLabel(-26),'前 27 年');assert.equal(yearLabel(0),'前 1 年');assert.equal(yearLabel(1),'1 年');});
+test('map snapshots follow their actual boundary years',()=>{assert.equal(snapshotFor(116).year,69);assert.equal(snapshotFor(117).year,117);assert.equal(snapshotFor(270).mode,'crisis');assert.equal(snapshotFor(271).mode,'fractured');assert.equal(snapshotFor(395).mode,'divided');});
+test('a city keeps its location while the primary display name changes',()=>{const c=cities.find(c=>c.id==='constantinople');assert.equal(cityName(c,329).name,'拜占庭');assert.equal(cityName(c,330).name,'君士坦丁堡');assert.deepEqual(c.p,[28.97,41.01]);});
+test('all event references, map regions and identifiers resolve',()=>{const cs=new Set(cities.map(c=>c.id)),ps=new Set(people.map(p=>p.id));assert.equal(cs.size,12);assert.equal(ps.size,8);for(const e of events){assert.ok(e.city?cs.has(e.city):e.p?.length===2);assert.ok(sources[e.source]);if(e.person)assert.ok(ps.has(e.person));assert.ok(e.year>=-26&&e.year<=395);}for(const s of snapshots)for(const r of s.include)assert.ok(regions[r]);});

@@ -1,0 +1,18 @@
+import {readFile,writeFile,mkdir,cp,rm} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const dist=path.join(root,'dist');
+await rm(dist,{recursive:true,force:true});await mkdir(dist,{recursive:true});
+await cp(path.join(root,'src'),path.join(dist,'src'),{recursive:true});
+await cp(path.join(root,'public/data'),path.join(dist,'data'),{recursive:true});
+let html=await readFile(path.join(root,'index.html'),'utf8');
+await writeFile(path.join(dist,'index.html'),html);
+const css=await readFile(path.join(root,'src/style.css'),'utf8');
+const data=(await readFile(path.join(root,'src/data.js'),'utf8')).replace(/\bexport\s+/g,'');
+const js=(await readFile(path.join(root,'src/main.js'),'utf8')).replace(/^import[^\n]+\n/,'');
+const land=await readFile(path.join(root,'public/data/land.geojson'),'utf8');
+html=html.replace('<link rel="stylesheet" href="./src/style.css">',`<style>${css}</style>`).replace('<script type="module" src="./src/main.js"></script>',`<script id="atlas-land" type="application/json">${land.replace(/</g,'\\u003c')}</script><script type="module">${(data+'\n'+js).replace(/<\/script/gi,'<\\/script')}</script>`);
+await mkdir(path.join(root,'artifacts'),{recursive:true});
+await writeFile(path.join(root,'artifacts/roma-atlas.html'),html);
+console.log('Built dist/ and self-contained artifacts/roma-atlas.html');

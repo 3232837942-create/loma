@@ -1,0 +1,10 @@
+import http from 'node:http';
+import {readFile,stat} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const root=path.resolve(fileURLToPath(new URL('../dist/',import.meta.url)));
+const args=process.argv.slice(2),i=args.indexOf('--port'),port=Number((i>=0?args[i+1]:null)||process.env.PORT||3000);
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.geojson':'application/geo+json','.json':'application/json','.png':'image/png','.svg':'image/svg+xml'};
+const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localhost');let name=decodeURIComponent(url.pathname);if(name.startsWith('/atlas/'))name=name.slice(7);name=name.replace(/^\/+/, '');let target=path.resolve(root,name||'index.html');if(target!==root&&!target.startsWith(root+path.sep)){res.writeHead(403);res.end('Forbidden');return;}if((await stat(target)).isDirectory())target=path.join(target,'index.html');const content=await readFile(target);res.writeHead(200,{'Content-Type':types[path.extname(target)]||'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});res.end(req.method==='HEAD'?undefined:content);}catch{res.writeHead(404,{'Content-Type':'text/plain; charset=utf-8'});res.end('Not found');}});
+server.listen(port,'0.0.0.0',()=>console.log(`Roma Atlas ready on port ${port}`));
+server.on('error',error=>{console.error(error.message);process.exitCode=1;});
